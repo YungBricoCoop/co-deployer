@@ -1,16 +1,16 @@
 {
   "hosts": [
 	 {
-		"name" : "",
-		"host" : "",
-		"user" : "",
-		"password" : ""
+		"name" : "test",
+		"host" : "test.com",
+		"user" : "test",
+		"password" : "test"
 	 }
   ],
   "deployments" :  [
 		{
 			"name" : "frontend b",
-			"host" : "",
+			"host" : "test",
 			"arg" : "-f",
 			"local_path" : "build",
 			"remote_path" : "/home/username/public_html",
@@ -22,7 +22,7 @@
 		},
 		{
 			"name" : "backend",
-			"host" : "",
+			"host" : "test",
 			"arg" : "-b",
 			"protocol" : "ssh",
 			"cmd" : "ls -la"
