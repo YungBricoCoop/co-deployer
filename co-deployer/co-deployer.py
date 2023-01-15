@@ -1,3 +1,4 @@
+import os
 import sys
 import json
 import paramiko
@@ -153,6 +154,10 @@ def deploy(deployment):
 	cmd = deployment.get("cmd")
 	cmd_before_transfer = deployment.get("cmd_before_transfer")
 	cmd_after_transfer = deployment.get("cmd_after_transfer")
+
+	files = deployment.get("files") or []
+	exclude = deployment.get("exclude") or ["deploy.config.json"]
+	remote_path = deployment.get("remote_path") or "/"
 	
 
 	# define connection
@@ -167,9 +172,15 @@ def deploy(deployment):
 	
 	if protocol == "ftp":
 		ftp = ftp_connect(hostname, ftp_user, ftp_password, ftp_port)
+		ftp_upload(ftp, files, exclude, remote_path)
 	
 	if protocol == "sftp":
 		sftp = sftp_connect(hostname, sfpt_user, sfpt_password, sfpt_port)
+		sftp_upload(sftp, files, exclude, remote_path)
+	
+	if cmd_after_transfer:
+		if ssh: print(f"SSH command result : {ssh_execute(ssh, cmd_after_transfer)}")
+		else: print("SSH connection required to execute command after transfer.")
 	
 def ssh_connect(hostname, ssh_user, ssh_password, ssh_port):
 	"""
@@ -245,6 +256,67 @@ def ssh_execute(ssh, cmd):
 	"""
 	stdin, stdout, stderr = ssh.exec_command(cmd)
 	return stdout.read().decode("utf-8")
+
+def sftp_upload(sftp, files_and_folders = [], exclude = [], remote_path = None):
+	"""
+	This function uploads files and folders to the SFTP server
+
+	Parameters:
+		sftp (SFTPClient): the SFTP client
+		files_and_folders (list): the list of files and folders to upload
+		exclude (list): the list of files and folders to exclude
+		remote_path (str): the remote path
+	"""
+	# Iterate over files and folders and transfer them if they are not in the exclude list
+
+	try:
+		if remote_path : sftp.chdir(remote_path)
+	except Exception as e:
+		print(f"[bold red]SFTP Error[/bold red] : Invalid remote directory ({remote_path})")
+
+	for item in files_and_folders:
+		if any(os.path.join(item, x) in exclude for x in exclude):
+			continue
+		if os.path.isdir(item):
+			sftp.mkdir(item)
+			sub_items = [os.path.join(item, sub_item) for sub_item in sftp.listdir(item)]
+			sftp_upload(sftp, sub_items, exclude, remote_path)
+		else:
+			sftp.put(item, remote_path=item)
+
+	# Close the SFTP client
+	sftp.close()
+
+def ftp_upload(ftp, files_and_folders = [], exclude = [], remote_path = None):
+	"""
+	This function uploads files and folders to the FTP server
+
+	Parameters:
+		ftp (FTP): the FTP connection
+		files_and_folders (list): the list of files and folders to upload
+		exclude (list): the list of files and folders to exclude
+		remote_path (str): the remote path
+	"""
+	try:
+		if remote_path: ftp.cwd(remote_path)
+	except ftplib.error_perm as e:
+		print(f"[bold red]FTP Error[/bold red] : Invalid remote directory ({remote_path})")
+
+	for item in files_and_folders:
+		if any(os.path.join(item, exclude_item) in exclude for exclude_item in ftp.nlst(item)) or item in exclude:
+			continue
+		if os.path.isdir(item):
+			ftp.mkd(item)
+			ftp.cwd(item)
+			sub_items = [os.path.join(item, sub_item) for sub_item in os.listdir(item)]
+			ftp_upload(ftp, sub_items, exclude, item)
+			ftp.cwd("..")
+		else:
+			with open(item, 'rb') as f:
+				ftp.storbinary(f"STOR {item}", f)
+
+	# Close the FTP connection
+	ftp.quit()
 
 if __name__ == "__main__":
 	config = load_config()

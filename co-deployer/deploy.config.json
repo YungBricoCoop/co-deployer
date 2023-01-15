@@ -1,32 +1,33 @@
 {
-  "hosts": [
-	 {
-		"name" : "test",
-		"host" : "test.com",
-		"user" : "test",
-		"password" : "test"
-	 }
-  ],
-  "deployments" :  [
-		{
-			"name" : "frontend b",
-			"host" : "test",
-			"arg" : "-f",
-			"local_path" : "build",
-			"remote_path" : "/home/username/public_html",
-			"protocol" : "sftp",
-			"files" : ["build"],
-			"exclude" : ["build/.*"],
-			"cmd_before_transfer" : "",
-			"cmd_after_transfer" : ""
-		},
-		{
-			"name" : "backend",
-			"host" : "test",
-			"arg" : "-b",
-			"protocol" : "ssh",
-			"cmd" : "ls -la"
-		}
-
-  ]
-}
+	"hosts": [
+	   {
+		  "name" : "test",
+		  "host" : "test.com",
+		  "user" : "test",
+		  "password" : "test"
+	   }
+	],
+	"deployments" :  [
+		  {
+			  "name" : "frontend b",
+			  "host" : "test",
+			  "arg" : "-f",
+			  "local_path" : "build",
+			  "remote_path" : "/home/username/public_html",
+			  "protocol" : "sftp",
+			  "files" : ["build"],
+			  "exclude" : ["build/.*"],
+			  "cmd_before_transfer" : "",
+			  "cmd_after_transfer" : ""
+		  },
+		  {
+			  "name" : "backend",
+			  "host" : "test",
+			  "arg" : "-b",
+			  "protocol" : "ssh",
+			  "cmd" : "ls -la"
+		  }
+  
+	]
+  }
+  
