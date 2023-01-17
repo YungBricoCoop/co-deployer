@@ -158,7 +158,6 @@ def deploy(deployment):
 	cmd_before_transfer = deployment.get("cmd_before_transfer")
 	cmd_after_transfer = deployment.get("cmd_after_transfer")
 
-	files = deployment.get("files") or []
 	exclude = deployment.get("exclude") or ["deploy.config.json"]
 	remote_path = deployment.get("remote_path") or "/"
 	
@@ -168,6 +167,9 @@ def deploy(deployment):
 	ftp = None
 	sftp = None
 
+	# create tmp directory
+	tmp_dir = create_tmp_file_structure(".", exclude)
+
 	if protocol == "ssh" or (cmd_before_transfer or cmd_after_transfer):
 		ssh = ssh_connect(hostname, ssh_user, ssh_password, ssh_port)
 		if cmd_before_transfer: print(f"SSH command result : {ssh_execute(ssh, cmd_before_transfer)}")
@@ -175,11 +177,10 @@ def deploy(deployment):
 	
 	if protocol == "ftp":
 		ftp = ftp_connect(hostname, ftp_user, ftp_password, ftp_port)
-		ftp_upload(ftp, files, exclude, remote_path)
 	
 	if protocol == "sftp":
 		sftp = sftp_connect(hostname, sfpt_user, sfpt_password, sfpt_port)
-		sftp_upload(sftp, files, exclude, remote_path)
+		sftp_upload(sftp, tmp_dir, remote_path)
 	
 	if cmd_after_transfer:
 		if ssh: print(f"SSH command result : {ssh_execute(ssh, cmd_after_transfer)}")
@@ -260,35 +261,36 @@ def ssh_execute(ssh, cmd):
 	stdin, stdout, stderr = ssh.exec_command(cmd)
 	return stdout.read().decode("utf-8")
 
-def sftp_upload(sftp, files_and_folders = [], exclude = [], remote_path = None):
-	"""
-	This function uploads files and folders to the SFTP server
-
-	Parameters:
-		sftp (SFTPClient): the SFTP client
-		files_and_folders (list): the list of files and folders to upload
-		exclude (list): the list of files and folders to exclude
-		remote_path (str): the remote path
-	"""
-	# Iterate over files and folders and transfer them if they are not in the exclude list
-
+def sftp_upload(sftp, local_dir, remote_dir):
+	if remote_dir and not remote_dir_exists(sftp, remote_dir):
+		sftp.mkdir(remote_dir)
+		
+	for item in os.listdir(local_dir):
+		local_path = os.path.join(local_dir, item)
+		remote_path = os.path.join(remote_dir, item)
+		remote_path = remote_path.replace("\\", "/")
+		if os.path.isfile(local_path):
+			name = os.path.basename(local_path)
+			try:
+				sftp.put(local_path, remote_path)
+				print(f"[bold cyan]Uploaded[/bold cyan] : {name}")
+			except Exception as e:
+				print(f"[bold red]Error[/bold red] uploading file {name}: {e}")
+		elif os.path.isdir(local_path):
+			name = os.path.basename(local_path)
+			try:
+				sftp.mkdir(remote_path)
+				print(f"[bold cyan]Created folder[/bold cyan] : {name}")
+			except Exception as e:
+				print(f"[bold red]Error[/bold red] creating folder {remote_path}: {e}")
+			sftp_upload(sftp, local_path, remote_path)
+			
+def remote_dir_exists(sftp, remote_dir):
 	try:
-		if remote_path : sftp.chdir(remote_path)
-	except Exception as e:
-		print(f"[bold red]SFTP Error[/bold red] : Invalid remote directory ({remote_path})")
-
-	for item in files_and_folders:
-		if any(os.path.join(item, x) in exclude for x in exclude):
-			continue
-		if os.path.isdir(item):
-			sftp.mkdir(item)
-			sub_items = [os.path.join(item, sub_item) for sub_item in sftp.listdir(item)]
-			sftp_upload(sftp, sub_items, exclude, remote_path)
-		else:
-			sftp.put(item, remotepath=item)
-
-	# Close the SFTP client
-	sftp.close()
+		sftp.stat(remote_dir)
+		return True
+	except IOError:
+		return False
 
 def ftp_upload(ftp, files_and_folders = [], exclude = [], remote_path = None):
 	"""
