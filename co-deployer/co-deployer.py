@@ -1,6 +1,9 @@
 import os
 import sys
 import json
+import shutil
+import uuid
+import tempfile
 import paramiko
 import ftplib
 from argparse import ArgumentParser
@@ -282,7 +285,7 @@ def sftp_upload(sftp, files_and_folders = [], exclude = [], remote_path = None):
 			sub_items = [os.path.join(item, sub_item) for sub_item in sftp.listdir(item)]
 			sftp_upload(sftp, sub_items, exclude, remote_path)
 		else:
-			sftp.put(item, remote_path=item)
+			sftp.put(item, remotepath=item)
 
 	# Close the SFTP client
 	sftp.close()
@@ -317,6 +320,24 @@ def ftp_upload(ftp, files_and_folders = [], exclude = [], remote_path = None):
 
 	# Close the FTP connection
 	ftp.quit()
+
+def create_tmp_file_structure(localpath = ".", exclude = []):
+	# Create a temporary directory
+	tmp_dir = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()))
+	# Copy the local directory to the temporary directory
+	shutil.copytree(localpath, tmp_dir)
+	
+	# Remove the excluded files and folders
+	for item in exclude:
+		item_path = os.path.join(tmp_dir, item)
+		if os.path.isfile(item_path):
+			os.remove(item_path)
+		elif os.path.isdir(item_path):
+			shutil.rmtree(item_path)
+	
+	# Return the temporary directory
+	return tmp_dir
+
 
 if __name__ == "__main__":
 	config = load_config()
