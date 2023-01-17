@@ -8,6 +8,7 @@ import paramiko
 import ftplib
 from argparse import ArgumentParser
 from rich import print
+from rich.progress import track
 
 CONFIG_FILE = "deploy.config.json"
 
@@ -330,7 +331,7 @@ def create_tmp_file_structure(localpath = ".", exclude = []):
 	shutil.copytree(localpath, tmp_dir)
 	
 	# Remove the excluded files and folders
-	for item in exclude:
+	for item in track(exclude, description = "Removing excluded files and folders..."):
 		item_path = os.path.join(tmp_dir, item)
 		if os.path.isfile(item_path):
 			os.remove(item_path)
