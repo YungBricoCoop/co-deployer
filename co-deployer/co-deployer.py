@@ -293,36 +293,31 @@ def remote_dir_exists(sftp, remote_dir):
 	except IOError:
 		return False
 
-def ftp_upload(ftp, files_and_folders = [], exclude = [], remote_path = None):
-	"""
-	This function uploads files and folders to the FTP server
+def ftp_upload(ftp, local_dir, remote_dir):
+	if remote_dir and not remote_dir_exists(ftp, remote_dir):
+		ftp.mkd(remote_dir)
+	
+	for item in os.listdir(local_dir):
+		local_path = os.path.join(local_dir, item)
+		remote_path = os.path.join(remote_dir, item)
+		remote_path = remote_path.replace("\\", "/")
+		if os.path.isfile(local_path):
+			name = os.path.basename(local_path)
+			with open(local_path, 'rb') as f:
+				try:
+					ftp.storbinary('STOR ' + remote_path, f)
+					print(f"[bold cyan]Uploaded[/bold cyan] : {name}")
+				except Exception as e:
+					print(f"[bold red]Error[/bold red] uploading file {name}: {e}")
+		elif os.path.isdir(local_path):
+			name = os.path.basename(local_path)
+			try:
+				ftp.mkd(remote_path)
+				print(f"[bold cyan]Created folder[/bold cyan] : {name}")
+			except Exception as e:
+				print(f"[bold red]Error[/bold red] creating folder {remote_path}: {e}")
+			ftp_upload(ftp, local_path, remote_path)
 
-	Parameters:
-		ftp (FTP): the FTP connection
-		files_and_folders (list): the list of files and folders to upload
-		exclude (list): the list of files and folders to exclude
-		remote_path (str): the remote path
-	"""
-	try:
-		if remote_path: ftp.cwd(remote_path)
-	except ftplib.error_perm as e:
-		print(f"[bold red]FTP Error[/bold red] : Invalid remote directory ({remote_path})")
-
-	for item in files_and_folders:
-		if any(os.path.join(item, exclude_item) in exclude for exclude_item in ftp.nlst(item)) or item in exclude:
-			continue
-		if os.path.isdir(item):
-			ftp.mkd(item)
-			ftp.cwd(item)
-			sub_items = [os.path.join(item, sub_item) for sub_item in os.listdir(item)]
-			ftp_upload(ftp, sub_items, exclude, item)
-			ftp.cwd("..")
-		else:
-			with open(item, 'rb') as f:
-				ftp.storbinary(f"STOR {item}", f)
-
-	# Close the FTP connection
-	ftp.quit()
 
 def create_tmp_file_structure(localpath = ".", exclude = []):
 	# Create a temporary directory
