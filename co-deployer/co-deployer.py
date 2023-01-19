@@ -71,7 +71,6 @@ def validate_deployments(config):
 	"""
 	required_fields = ["name", "host", "arg", "protocol"]
 	protocol_fields = ["ftp", "sftp", "ssh"]
-	files_cmd_fields = ["files", "cmd"]
 	
 	valid = True
 	
@@ -85,15 +84,12 @@ def validate_deployments(config):
 		is_protocol_field_invalid = protocol not in protocol_fields
 		if is_protocol_field_invalid: print(f"Invalid protocol ({protocol}) : {', '.join(protocol_fields)}")
 
-		is_files_or_cmd_missing = not any([field in deployment for field in files_cmd_fields])
-		if is_files_or_cmd_missing: print(f"Need at least one of the following fields : {', '.join(files_cmd_fields)}")
-
 		host = [host for host in config["hosts"] if host["name"] == deployment["host"]]
 		if not host or not len(hosts): print(f"Host {deployment['host']} not found.")
 		else: host = host[0]
 		deployment["host"] = host
 
-		valid = valid and not is_required_field_missing and not is_protocol_field_invalid and not is_files_or_cmd_missing and host
+		valid = valid and not is_required_field_missing and not is_protocol_field_invalid and host
 	
 	if not valid:
 		print("Invalid deployments configuration.")
