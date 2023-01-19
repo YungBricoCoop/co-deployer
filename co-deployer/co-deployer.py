@@ -144,10 +144,12 @@ def deploy(deployment):
 	ftp_user = host.get("ftp_user") or host.get("user")
 	ftp_password = host.get("ftp_password") or host.get("password")
 	ftp_port = host.get("ftp_port") or 21
+	ftp_remote_path = deployment.get("ftp_remote_path") or deployment.get("remote_path")
 
 	sfpt_user = host.get("sfpt_user") or host.get("user")
 	sfpt_password = host.get("sfpt_password") or host.get("password")
 	sfpt_port = host.get("sfpt_port") or 22
+	sfpt_remote_path = deployment.get("sfpt_remote_path") or deployment.get("remote_path")
 
 	ssh_user = host.get("ssh_user") or host.get("user")
 	ssh_password = host.get("ssh_password") or host.get("password")
@@ -160,7 +162,6 @@ def deploy(deployment):
 	cmd_after_transfer = deployment.get("cmd_after_transfer")
 
 	exclude = deployment.get("exclude") or ["deploy.config.json"]
-	remote_path = deployment.get("remote_path") or "/"
 	
 
 	# define connection
@@ -178,10 +179,11 @@ def deploy(deployment):
 	
 	if protocol == "ftp":
 		ftp = ftp_connect(hostname, ftp_user, ftp_password, ftp_port)
+		ftp_upload(ftp, tmp_dir, ftp_remote_path)
 	
 	if protocol == "sftp":
 		sftp = sftp_connect(hostname, sfpt_user, sfpt_password, sfpt_port)
-		sftp_upload(sftp, tmp_dir, remote_path)
+		sftp_upload(sftp, tmp_dir, sfpt_remote_path)
 	
 	if cmd_after_transfer:
 		if ssh: print(f"SSH command result : {ssh_execute(ssh, cmd_after_transfer)}")
@@ -263,7 +265,7 @@ def ssh_execute(ssh, cmd):
 	return stdout.read().decode("utf-8")
 
 def sftp_upload(sftp, local_dir, remote_dir):
-	if remote_dir and not remote_dir_exists(sftp, remote_dir):
+	if remote_dir and not remote_dir_exists_sftp(sftp, remote_dir):
 		sftp.mkdir(remote_dir)
 		
 	for item in os.listdir(local_dir):
@@ -286,7 +288,7 @@ def sftp_upload(sftp, local_dir, remote_dir):
 				print(f"[bold red]Error[/bold red] creating folder {remote_path}: {e}")
 			sftp_upload(sftp, local_path, remote_path)
 			
-def remote_dir_exists(sftp, remote_dir):
+def remote_dir_exists_sftp(sftp, remote_dir):
 	try:
 		sftp.stat(remote_dir)
 		return True
@@ -294,7 +296,7 @@ def remote_dir_exists(sftp, remote_dir):
 		return False
 
 def ftp_upload(ftp, local_dir, remote_dir):
-	if remote_dir and not remote_dir_exists(ftp, remote_dir):
+	if remote_dir and not remote_dir_exists_ftp(ftp, remote_dir):
 		ftp.mkd(remote_dir)
 	
 	for item in os.listdir(local_dir):
@@ -317,6 +319,14 @@ def ftp_upload(ftp, local_dir, remote_dir):
 			except Exception as e:
 				print(f"[bold red]Error[/bold red] creating folder {remote_path}: {e}")
 			ftp_upload(ftp, local_path, remote_path)
+
+def remote_dir_exists_ftp(ftp, remote_dir):
+    try:
+        ftp.cwd(remote_dir)
+        ftp.cwd('..') 
+        return True
+    except ftplib.error_perm:
+        return False
 
 
 def create_tmp_file_structure(localpath = ".", exclude = []):
