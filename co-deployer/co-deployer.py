@@ -3,6 +3,7 @@ import sys
 import json
 import shutil
 import uuid
+import subprocess
 import tempfile
 import paramiko
 import ftplib
@@ -155,11 +156,17 @@ def deploy(deployment):
 	ssh_password = host.get("ssh_password") or host.get("password")
 	ssh_port = host.get("ssh_port") or 22
 
+
+	# protocol to use
 	protocol = deployment.get("protocol")
 	
+	# commands to execute
 	cmd = deployment.get("cmd")
-	cmd_before_transfer = deployment.get("cmd_before_transfer")
-	cmd_after_transfer = deployment.get("cmd_after_transfer")
+	start_cmd = deployment.get("start_cmd")
+	end_cmd = deployment.get("end_cmd")
+	start_ssh_cmd = deployment.get("start_ssh_cmd")
+	end_ssh_cmd = deployment.get("end_ssh_cmd")
+
 
 	exclude = deployment.get("exclude") or ["deploy.config.json"]
 	
@@ -172,22 +179,78 @@ def deploy(deployment):
 	# create tmp directory
 	tmp_dir = create_tmp_file_structure(".", exclude)
 
-	if protocol == "ssh" or (cmd_before_transfer or cmd_after_transfer):
+
+	# init connection(s)
+	if protocol == "ssh" or (start_ssh_cmd or end_ssh_cmd):
 		ssh = ssh_connect(hostname, ssh_user, ssh_password, ssh_port)
-		if cmd_before_transfer: print(f"SSH command result : {ssh_execute(ssh, cmd_before_transfer)}")
-		if cmd : print(f"SSH command result : {ssh_execute(ssh, cmd)}")
-	
+
 	if protocol == "ftp":
 		ftp = ftp_connect(hostname, ftp_user, ftp_password, ftp_port)
-		ftp_upload(ftp, tmp_dir, ftp_remote_path)
 	
 	if protocol == "sftp":
 		sftp = sftp_connect(hostname, sfpt_user, sfpt_password, sfpt_port)
+
+	
+	# execute commands, upload files, etc.
+	if start_cmd: print(f"Command result : {execute(start_cmd)}")
+	if protocol == "ssh" or (start_ssh_cmd or end_ssh_cmd):
+		if start_ssh_cmd: print(f"SSH command result : {ssh_execute(ssh, start_ssh_cmd)}")
+		if cmd : print(f"SSH command result : {ssh_execute(ssh, cmd)}")
+	
+	if protocol == "ftp":
+		ftp_upload(ftp, tmp_dir, ftp_remote_path)
+	
+	if protocol == "sftp":
 		sftp_upload(sftp, tmp_dir, sfpt_remote_path)
 	
-	if cmd_after_transfer:
-		if ssh: print(f"SSH command result : {ssh_execute(ssh, cmd_after_transfer)}")
+	if end_ssh_cmd:
+		if ssh: print(f"SSH command result : {ssh_execute(ssh, end_ssh_cmd)}")
 		else: print("SSH connection required to execute command after transfer.")
+	
+	if end_cmd: print(f"Command result : {execute(end_cmd)}")
+	
+	# close connections
+	close_connections(ssh, ftp, sftp)
+
+	# remove tmp directory
+	remove_tmp_dir(tmp_dir)
+
+def close_connections(ssh, ftp, sftp):
+	"""
+	This function closes the connections
+
+	Parameters:
+		ssh (SSHClient): the SSH client
+		ftp (FTP): the FTP client
+		sftp (SFTP): the SFTP client
+	"""
+	try:
+		if ssh: 
+			ssh.close()
+			print("[bold green]Closed connection[/bold green] : SSH")
+		if ftp: 
+			ftp.close()
+			print("[bold green]Closed connection[/bold green] : FTP")
+		if sftp: 
+			sftp.close()
+			print("[bold green]Closed connection[/bold green] : SFTP")
+
+	except Exception as e:
+		print("[bold red]Error while closing connection(s)[/bold red] :", e)
+
+	
+def remove_tmp_dir(tmp_dir):
+	"""
+	This function removes the tmp directory
+
+	Parameters:
+		tmp_dir (str): the tmp directory
+	"""
+	try:
+		shutil.rmtree(tmp_dir)
+		print(f"[bold green]Removed[/bold green] : Temp directory")
+	except Exception as e:
+		print("[bold red]Error while removing tmp directory[/bold red] :", e)
 	
 def ssh_connect(hostname, ssh_user, ssh_password, ssh_port):
 	"""
@@ -264,6 +327,17 @@ def ssh_execute(ssh, cmd):
 	stdin, stdout, stderr = ssh.exec_command(cmd)
 	return stdout.read().decode("utf-8")
 
+def execute(cmd):
+	"""
+	This function executes a command
+
+	Parameters:
+		cmd (str): the command to execute
+
+	:return: the output of the command
+	"""
+	return subprocess.check_output(cmd, shell=True).decode("utf-8")
+
 def sftp_upload(sftp, local_dir, remote_dir):
 	if remote_dir and not remote_dir_exists_sftp(sftp, remote_dir):
 		sftp.mkdir(remote_dir)
@@ -276,14 +350,14 @@ def sftp_upload(sftp, local_dir, remote_dir):
 			name = os.path.basename(local_path)
 			try:
 				sftp.put(local_path, remote_path)
-				print(f"[bold cyan]Uploaded[/bold cyan] : {name}")
+				print(f"[bold green]Uploaded[/bold green] : {name}")
 			except Exception as e:
 				print(f"[bold red]Error[/bold red] uploading file {name}: {e}")
 		elif os.path.isdir(local_path):
 			name = os.path.basename(local_path)
 			try:
 				sftp.mkdir(remote_path)
-				print(f"[bold cyan]Created folder[/bold cyan] : {name}")
+				print(f"[bold green]Created folder[/bold green] : {name}")
 			except Exception as e:
 				print(f"[bold red]Error[/bold red] creating folder {remote_path}: {e}")
 			sftp_upload(sftp, local_path, remote_path)
@@ -308,14 +382,14 @@ def ftp_upload(ftp, local_dir, remote_dir):
 			with open(local_path, 'rb') as f:
 				try:
 					ftp.storbinary('STOR ' + remote_path, f)
-					print(f"[bold cyan]Uploaded[/bold cyan] : {name}")
+					print(f"[bold green]Uploaded[/bold green] : {name}")
 				except Exception as e:
 					print(f"[bold red]Error[/bold red] uploading file {name}: {e}")
 		elif os.path.isdir(local_path):
 			name = os.path.basename(local_path)
 			try:
 				ftp.mkd(remote_path)
-				print(f"[bold cyan]Created folder[/bold cyan] : {name}")
+				print(f"[bold green]Created folder[/bold green] : {name}")
 			except Exception as e:
 				print(f"[bold red]Error[/bold red] creating folder {remote_path}: {e}")
 			ftp_upload(ftp, local_path, remote_path)
