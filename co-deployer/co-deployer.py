@@ -95,8 +95,8 @@ def validate_config(config):
 					"properties": {
 						"name" : { "type": "string" },
 						"host" : { "type": "string" },
-						"arg" : { "type": "string" },
-						"protocol" : { "type": "string" },
+						"arg" : { "type": "string", "pattern": "^-.*$" },
+						"protocol" : { "type": "string" , "enum": ["ftp", "sftp", "ssh"] },
 
 						"local_path" : { "type": "string" },
 						"remote_path" : { "type": "string" },
@@ -131,6 +131,18 @@ def validate_config(config):
 		print(f"[bold red]Configuration file[/bold red]: {CONFIG_FILE} [bold red]is not valid[/bold red]")
 		print(e)
 		sys.exit(1)
+
+def build_hosts_dict(config):
+	hosts = {}
+	for host in config["hosts"]:
+		hosts[host["name"]] = host
+	return hosts
+
+def build_deployments_dict(config):
+	deployments = {}
+	for deployment in config["deployments"]:
+		deployments[deployment["arg"]] = deployment
+	return deployments
 
 if __name__ == "__main__":
 	config = load_config()
