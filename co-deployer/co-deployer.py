@@ -133,17 +133,55 @@ def validate_config(config):
 		sys.exit(1)
 
 def build_hosts_dict(config):
+	"""
+	Builds a host dictionary from the config file
+
+	:param config: The config dictionary
+	:return: The hosts dictionary
+	"""
 	hosts = {}
-	for host in config["hosts"]:
-		hosts[host["name"]] = host
+	for h in config["hosts"]:
+		hosts[h["name"]] = h
 	return hosts
 
-def build_deployments_dict(config):
+def build_deployments_dict(config, hosts):
+	"""
+	Builds a deployment dictionary from the config file
+
+	:param config: The config dictionary
+	:return: The deployments dictionary
+	"""
 	deployments = {}
-	for deployment in config["deployments"]:
-		deployments[deployment["arg"]] = deployment
+	for d in config["deployments"]:
+		if d["host"] not in hosts:
+			print(f"[bold red]Host[/bold red]: {d['host']} [bold red]not found in hosts list[/bold red]")
+			sys.exit(1)
+		d["host"] = hosts[d["host"]]
+		deployments[d["arg"]] = d
+	
 	return deployments
+
+def parse_arguments(deployments):
+	"""
+	This function parses the command line arguments
+
+	:param deployments: The deployments dictionary
+
+	:return: to_deploy: The given deployments to execute
+	"""
+	parser = ArgumentParser()
+	for d in deployments:
+		name = deployments[d]["name"]
+		parser.add_argument(d, f"--{d}", help=f"Execute the deployment {name}", action="store_true")
+	
+	# only return the deployments that are set to true
+	to_deploy = [deployments["-"+x] for x,y in vars(parser.parse_args()).items() if y]
+	return to_deploy
+
 
 if __name__ == "__main__":
 	config = load_config()
 	validate_config(config)
+	hosts = build_hosts_dict(config)
+	deployments = build_deployments_dict(config, hosts)
+	to_deploy = parse_arguments(deployments)
