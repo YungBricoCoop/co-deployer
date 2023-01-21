@@ -179,6 +179,92 @@ def parse_arguments(deployments):
 	return to_deploy
 
 
+
+def ssh_connect(hostname, username, password, port):
+	"""
+	This function connects to the SSH server
+
+	Parameters:
+		username (str): the SSH user
+		password (str): the SSH password
+		port (int): the SSH port
+
+	:return: the SSH client
+	"""
+	try:
+		ssh = paramiko.SSHClient()
+		ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+		ssh.connect(hostname=hostname, username=username, password=password, port=port)
+	except Exception as e:
+		print("[bold red]SSH Error[/bold red] :", e)
+		sys.exit(1)
+	return ssh
+
+def ftp_connect(hostname, username, password, port):
+	"""
+	This function connects to the FTP server
+
+	Parameters:
+		hostname (str): the hostname
+		username (str): the FTP user
+		password (str): the FTP password
+		port (int): the FTP port
+
+	:return: the FTP client
+	"""
+	try:
+		ftp = ftplib.FTP()
+		ftp.connect(hostname, port)
+		ftp.login(username, password)
+	except Exception as e:
+		print("[bold red]FTP Error[/bold red] :", e)
+		sys.exit(1)
+	return ftp
+
+def sftp_connect(hostname, username, password, port):
+	"""
+	This function connects to the SFTP server
+
+	Parameters:
+		hostname (str): the hostname
+		username (str): the SFTP user
+		password (str): the SFTP password
+		port (int): the SFTP port
+
+	:return: the SFTP client
+	"""
+	try:
+		transport = paramiko.Transport((hostname, port))
+		transport.connect(username=username, password=password)
+		sftp = transport.open_sftp_client()
+		return sftp
+	except Exception as e:
+		print("[bold red]SFTP Error[/bold red] :", e)
+		sys.exit(1)
+
+def close_connections(ssh, ftp, sftp):
+	"""
+	This function closes the connections
+
+	Parameters:
+		ssh (SSHClient): the SSH client
+		ftp (FTP): the FTP client
+		sftp (SFTP): the SFTP client
+	"""
+	try:
+		if ssh: 
+			ssh.close()
+			print("[bold green]Closed connection[/bold green] : SSH")
+		if ftp: 
+			ftp.close()
+			print("[bold green]Closed connection[/bold green] : FTP")
+		if sftp: 
+			sftp.close()
+			print("[bold green]Closed connection[/bold green] : SFTP")
+
+	except Exception as e:
+		print("[bold red]Error while closing connection(s)[/bold red] :", e)
+
 if __name__ == "__main__":
 	config = load_config()
 	validate_config(config)
