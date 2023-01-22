@@ -61,21 +61,21 @@ class Deploy:
 			self.ftp = Ftp(ftp)
 		
 		# execute base commands
-		if cmd.get("shell"):
-			result = self.cmd.execute(cmd.get("shell"))
+		if cmd_shell:
+			result = self.cmd.execute(cmd_shell)
 			print(f"[bold cyan][SHELL CMD OUT][/bold cyan] : {result}")
 		
-		if cmd.get("ssh"):
-			result = self.ssh.execute(cmd.get("ssh"))
+		if cmd_ssh:
+			result = self.ssh.execute(cmd_ssh)
 			print(f"[bold cyan][SSH CMD OUT][/bold cyan] : {result}")
 
 		# execute the commands before the deployment
-		if cmd.get("before"):
-			result = self.ssh.execute(cmd.get("before"))
+		if cmd_before:
+			result = self.ssh.execute(cmd_before)
 			print(f"[bold cyan][BEFORE CMD OUT][/bold cyan] : {result}")
 
-		if cmd.get("ssh_before"):
-			result = self.ssh.execute(cmd.get("ssh_before"))
+		if cmd_ssh_before:
+			result = self.ssh.execute(cmd_ssh_before)
 			print(f"[bold cyan][BEFORE SSH CMD OUT][/bold cyan] : {result}")
 
 		# deploy
@@ -90,12 +90,12 @@ class Deploy:
 			print("[bold cyan][FTP][/bold cyan] Successfully deployed")
 		
 		# execute the commands after the deployment
-		if cmd.get("after"):
-			result = self.ssh.execute(cmd.get("after"))
+		if cmd_after:
+			result = self.cmd.execute(cmd_after)
 			print(f"[bold cyan][AFTER CMD OUT][/bold cyan] : {result}")
 
-		if cmd.get("ssh_after"):
-			result = self.cmd.execute(cmd.get("ssh_after"))
+		if cmd_ssh_after:
+			result = self.cmd.execute(cmd_ssh_after)
 			print(f"[bold cyan][AFTER SSH CMD OUT][/bold cyan] : {result}")
 	
 		# delete the remote directory
