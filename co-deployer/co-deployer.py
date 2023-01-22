@@ -1,6 +1,3 @@
-# imports
-from argparse import ArgumentParser
-
 # modules
 import Config
 import Deploy
