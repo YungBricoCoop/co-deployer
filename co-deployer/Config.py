@@ -92,8 +92,7 @@ class Config:
 		"required": ["hosts", "deployments"],
 		"additionalProperties" : False}
 	
-	def __init__(self, config_file):
-		self.config = self.load_config(config_file)
+	def __init__(self):
 		self._load_config()
 		self._validate()
 	
