@@ -9,7 +9,7 @@ class Ftp:
 
 	def __init__(self, config):
 		self.config = config
-		self.ftp = None
+		self._connect()
 
 	def __del__(self):
 		if self.ftp: self.disconnect()
@@ -34,8 +34,9 @@ class Ftp:
 		"""
 		Disconnects from the FTP server
 		"""
-		self.ftp.close()
-		self.ftp = None
+		if self.ftp: 
+			self.ftp.close()
+			self.ftp = None
 	
 	def upload(self, local_dir, remote_dir):
 		"""

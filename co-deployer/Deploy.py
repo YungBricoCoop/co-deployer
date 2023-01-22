@@ -3,11 +3,12 @@ import sys
 import shutil
 import tempfile
 import uuid
+from rich import print
 
-import Ftp
-import Sftp
-import Ssh
-import Cmd
+from Ftp import Ftp
+from Sftp import Sftp
+from Ssh import Ssh
+from Cmd import Cmd
 
 class Deploy:
 	deployments = None
@@ -18,7 +19,7 @@ class Deploy:
 
 	def __init__(self, deployments):
 		self.deployments = deployments
-		self.cmd = Cmd.Cmd()	
+		self.cmd = Cmd()	
 	def __del__(self):
 		self._close_connections()
 		
@@ -52,8 +53,11 @@ class Deploy:
 		# create temporary directory
 		tmp_dir = self._create_tmp_directory(local_path, exclude)
 
+		# reset connections
+		self._close_connections()
+
 		# create connections	
-		if cmd.get("ssh_before") or cmd.get("ssh_after"):
+		if cmd_ssh or cmd_ssh_before or cmd_ssh_after:
 			self.ssh = Ssh(ssh)
 		
 		if protocol == "sftp":
@@ -73,7 +77,7 @@ class Deploy:
 
 		# execute the commands before the deployment
 		if cmd_before:
-			result = self.ssh.execute(cmd_before)
+			result = self.cmd.execute(cmd_before)
 			print(f"[bold cyan][BEFORE CMD OUT][/bold cyan] : {result}")
 
 		if cmd_ssh_before:
@@ -131,8 +135,8 @@ class Deploy:
 
 	def _close_connections(self):
 		if self.ftp:
-			self.ftp.close()
+			self.ftp.disconnect()
 		if self.sftp:
-			self.sftp.close()
+			self.sftp.disconnect()
 		if self.ssh:
-			self.ssh.close()
+			self.ssh.disconnect()

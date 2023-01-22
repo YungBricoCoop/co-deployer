@@ -1,4 +1,5 @@
 import subprocess
+from rich import print
 
 class Cmd:
 	def execute(self, cmd):

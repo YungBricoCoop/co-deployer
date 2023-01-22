@@ -8,7 +8,7 @@ class Ssh:
 
 	def __init__(self, config):
 		self.config = config
-		self.ssh = None
+		self._connect()
 
 	def __del__(self):
 		if self.ssh: self.disconnect()

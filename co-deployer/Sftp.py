@@ -9,7 +9,7 @@ class Sftp:
 
 	def __init__(self, config):
 		self.config = config
-		self.sftp = None
+		self._connect()
 
 	def __del__(self):
 		if self.sftp: self.disconnect()
