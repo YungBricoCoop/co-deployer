@@ -95,6 +95,8 @@ class Config:
 	def __init__(self):
 		self._load_config()
 		self._validate()
+		self._build_hosts_dict()
+		self._build_deployments_dict()
 	
 	def _load_config(self):
 		"""
@@ -117,6 +119,46 @@ class Config:
 			print(f"{self.CONFIG_FILE} [bold red]is invalid[/bold red] : {e}")
 			sys.exit(1)
 
+	def _build_hosts_dict(self):
+		"""
+		Builds a host dictionary from the config file
+		"""
+		hosts = {}
+		for h in self.config["hosts"]:
+			h["ssh"] = self._build_host_protocols_dict(h, "ssh")
+			h["sftp"] = self._build_host_protocols_dict(h, "sftp")
+			h["ftp"] = self._build_host_protocols_dict(h, "ftp")
+			hosts[h["name"]] = h
+		
+		self.config["hosts"] = hosts
+
+	def _build_host_protocols_dict(self, host, protocol):
+		protocol_dict = host.get(protocol) or {}
+		ssh_port, sftp_port, ftp_port,  = 22, 22, 21
+		port = protocol_dict.get("port") or host.get("port") or ssh_port if protocol == "ssh" else sftp_port if protocol == "sftp" else ftp_port
+		return {
+			"hostname": protocol_dict.get("hostname") or host.get("hostname"),
+			"username": protocol_dict.get("username") or host.get("username"),
+			"password": protocol_dict.get("password") or host.get("password"),
+			"port":  port
+		}
+
+	def _build_deployments_dict(self):
+		"""
+		Builds a deployment dictionary from the config file
+		"""
+
+		deployments = {}
+		hosts = self.config["hosts"]
+		for d in self.config["deployments"]:
+			if d["host"] not in hosts:
+				print(f"[bold red]Host[/bold red]: {d['host']} [bold red]not found in hosts list[/bold red]")
+				sys.exit(1)
+			d["host"] = hosts[d["host"]]
+			deployments[d["arg"]] = d
+		
+		self.config["deployments"] = deployments
+
 	def get_arguments(self):
 		"""
 		This function build and parses the command line arguments
@@ -128,7 +170,8 @@ class Config:
 		parser = ArgumentParser()
 		for d in deployments:
 			name = deployments[d]["name"]
-			parser.add_argument(d, f"--{d}", help=f"Execute the deployment {name}", action="store_true")
+			arg = deployments[d]["arg"]
+			parser.add_argument(arg, f"--{arg}", help=f"Execute the deployment {name}", action="store_true")
 		
 		# only return the deployments that are set to true
 		arguments = [deployments["-"+x] for x,y in vars(parser.parse_args()).items() if y]
