@@ -24,9 +24,10 @@ class Sftp:
 			transport = paramiko.Transport((config.get("hostname"), config.get("port")))
 			transport.connect(username=config.get("username"), password=config.get("password"))
 			sftp = transport.open_sftp_client()
-			return sftp
+			self.sftp = sftp
 		except Exception as e:
 			print("[bold red]SFTP Error[/bold red] :", e)
+			self.sftp = None
 			sys.exit(1)
 	
 	def disconnect(self):
