@@ -34,11 +34,12 @@ class Sftp:
 		"""
 		Disconnects from the FTP server
 		"""
-		self.sftp.close()
-		self.sftp = None
+		if self.sftp:
+			self.sftp.close()
+			self.sftp = None
 	
 	def upload(self, local_dir, remote_dir):
-		if remote_dir and not self.remote_dir_exists(self.sftp, remote_dir):
+		if remote_dir and not self.remote_dir_exists(remote_dir):
 			self.sftp.mkdir(remote_dir)
 			
 		for item in os.listdir(local_dir):
@@ -61,9 +62,9 @@ class Sftp:
 					print(f"[bold red]Error[/bold red] creating folder {remote_path}: {e}")
 				self.upload(local_path, remote_path)
 				
-	def remote_dir_exists(sftp, remote_dir):
+	def remote_dir_exists(self, remote_dir):
 		try:
-			sftp.stat(remote_dir)
+			self.sftp.stat(remote_dir)
 			return True
 		except IOError:
 			return False
