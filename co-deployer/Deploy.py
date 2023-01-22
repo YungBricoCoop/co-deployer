@@ -26,6 +26,8 @@ class Deploy:
 		for d in self.deployments:
 			self._deploy(d)
 	
+		self._close_connections()
+		
 	def _deploy(self, deployment):
 		# deployment variables
 		name = deployment.get("name")
