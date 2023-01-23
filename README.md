@@ -2,7 +2,7 @@
 Co-Deployer is a tool made to deploy your projects simply and quickly. You can deploy your projects to a server using FTP or SFTP and also you can run commands on the server using SSH.
 
 ## Installation
-You can install Co-Deployer using composer:
+You can install Co-Deployer using pip:
 ```bash
 pip install co-deployer
 ```
