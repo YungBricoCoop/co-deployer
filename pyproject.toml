@@ -8,3 +8,6 @@ setuptools = "^50.0"
 rich = "^13.0.0"
 jsonschema = "^4.0.0"
 paramiko = "^2.0.0"
+
+[tool.poetry.scripts]
+codeployer = "co_deployer.co_deployer:main"

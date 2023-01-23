@@ -5,10 +5,18 @@ import tempfile
 import uuid
 from rich import print
 
-from modules.Ftp import Ftp
-from modules.Ssh import Ssh
-from modules.Sftp import Sftp
-from modules.Cmd import Cmd
+if __package__ is None or __package__ == '':
+	# uses current directory visibility
+	import modules.Ftp
+	import modules.Ssh
+	import modules.Sftp
+	import modules.Cmd
+else:
+	# uses current package visibility
+	from .Ftp import Ftp
+	from .Ssh import Ssh
+	from .Sftp import Sftp
+	from .Cmd import Cmd
 
 class Deploy:
 	deployments = None

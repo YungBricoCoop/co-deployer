@@ -10,4 +10,9 @@ setup(
 		"paramiko",
 		"jsonschema"
     ],
+	   entry_points={
+        "console_scripts": [
+            "co-deployer = co_deployer.co_deployer:main",
+        ],
+    },
 )
