@@ -1,5 +1,4 @@
 # modules
-import os
 if __package__ is None or __package__ == '':
 	# uses current directory visibility
 	from modules.Config import Config
