@@ -77,6 +77,8 @@ class Config:
 								"before" : { "type": "string" },
 								"after" : { "type": "string" },
 
+								"cmd" : { "type": "string" },
+
 								"ssh_before" : { "type": "string" },
 								"ssh_after" : { "type": "string" },
 							},

@@ -37,7 +37,7 @@ class Deploy:
 		remote_path = deployment.get("remote_path", "/")
 		exclude = deployment.get("exclude", [])
 		cmd = deployment.get("cmd", "") or {}
-		cmd_shell = cmd.get("shell")
+		cmd_shell = cmd.get("cmd")
 		cmd_ssh = cmd.get("ssh")
 		cmd_before = cmd.get("before")
 		cmd_after = cmd.get("after")
