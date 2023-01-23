@@ -5,10 +5,10 @@ import tempfile
 import uuid
 from rich import print
 
-from Ftp import Ftp
-from Sftp import Sftp
-from Ssh import Ssh
-from Cmd import Cmd
+from modules.Ftp import Ftp
+from modules.Ssh import Ssh
+from modules.Sftp import Sftp
+from modules.Cmd import Cmd
 
 class Deploy:
 	deployments = None
