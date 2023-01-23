@@ -50,16 +50,16 @@ class Sftp:
 				name = os.path.basename(local_path)
 				try:
 					self.sftp.put(local_path, remote_path)
-					print(f"[bold green]Uploaded[/bold green] : {name}")
+					print(f"[bold cyan][SFTP][/bold cyan] [bold green]Uploaded[/bold green] : {name}")
 				except Exception as e:
-					print(f"[bold red]Error[/bold red] uploading file {name}: {e}")
+					print(f"[bold cyan][SFTP][/bold cyan] [bold red]Error[/bold red] uploading file {name}: {e}")
 			elif os.path.isdir(local_path):
 				name = os.path.basename(local_path)
 				try:
 					self.sftp.mkdir(remote_path)
-					print(f"[bold green]Created folder[/bold green] : {name}")
+					print(f"[bold cyan][SFTP][/bold cyan] [bold green]Created folder[/bold green] : {name}")
 				except Exception as e:
-					print(f"[bold red]Error[/bold red] creating folder {remote_path}: {e}")
+					print(f"[bold cyan][SFTP][/bold cyan] [bold red]Error[/bold red] creating folder {remote_path}: {e}")
 				self.upload(local_path, remote_path)
 				
 	def remote_dir_exists(self, remote_dir):

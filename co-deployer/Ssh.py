@@ -25,7 +25,7 @@ class Ssh:
 			ssh.connect(hostname=config.get("hostname"), username=config.get("username"), password=config.get("password"), port=config.get("port"))
 			self.ssh = ssh
 		except Exception as e:
-			print("[bold red]SSH Error[/bold red] :", e)
+			print("[bold cyan][SSH][/bold cyan] [bold red]SSH Error[/bold red] :", e)
 			self.ssh = None
 			sys.exit(1)
 	

@@ -7,5 +7,5 @@ class Cmd:
 			result = subprocess.check_output(cmd, shell=True).decode("utf-8")
 			return result
 		except Exception as e:
-			print("[bold red]Error while executing command[/bold red] :", e)
+			print("[bold cyan][CMD][/bold cyan] [bold red]Error while executing command[/bold red] :", e)
 			return ""

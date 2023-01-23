@@ -26,7 +26,7 @@ class Ftp:
 			ftp.login(config.get("username"), config.get("password"))
 			self.ftp = ftp
 		except Exception as e:
-			print("[bold red]FTP Error[/bold red] :", e)
+			print("[bold cyan][FTP][/bold cyan][bold red]Error[/bold red] :", e)
 			self.ftp = None
 			sys.exit(1)
 	
@@ -55,16 +55,16 @@ class Ftp:
 				with open(local_path, 'rb') as f:
 					try:
 						self.ftp.storbinary('STOR ' + remote_path, f)
-						print(f"[bold green]Uploaded[/bold green] : {name}")
+						print(f"[bold cyan][FTP][/bold cyan] [bold green]Uploaded[/bold green] : {name}")
 					except Exception as e:
-						print(f"[bold red]Error[/bold red] uploading file {name}: {e}")
+						print(f"[bold cyan][FTP][/bold cyan] [bold red]Error[/bold red] uploading file {name}: {e}")
 			elif os.path.isdir(local_path):
 				name = os.path.basename(local_path)
 				try:
 					self.ftp.mkd(remote_path)
-					print(f"[bold green]Created folder[/bold green] : {name}")
+					print(f"[bold cyan][FTP][/bold cyan] [bold green]Created folder[/bold green] : {name}")
 				except Exception as e:
-					print(f"[bold red]Error[/bold red] creating folder {remote_path}: {e}")
+					print(f"[bold cyan][FTP][/bold cyan] [bold red]Error[/bold red] creating folder {remote_path}: {e}")
 				self.upload(local_path, remote_path)
 
 	def _remote_dir_exists_ftp(self, remote_dir):

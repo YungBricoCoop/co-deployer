@@ -69,40 +69,40 @@ class Deploy:
 		# execute base commands
 		if cmd_shell:
 			result = self.cmd.execute(cmd_shell)
-			print(f"[bold cyan][SHELL CMD OUT][/bold cyan] : {result}")
+			print(f"[bold cyan][CMD][/bold cyan] : {result}")
 		
 		if cmd_ssh:
 			result = self.ssh.execute(cmd_ssh)
-			print(f"[bold cyan][SSH CMD OUT][/bold cyan] : {result}")
+			print(f"[bold cyan][SSH][/bold cyan] : {result}")
 
 		# execute the commands before the deployment
 		if cmd_before:
 			result = self.cmd.execute(cmd_before)
-			print(f"[bold cyan][BEFORE CMD OUT][/bold cyan] : {result}")
+			print(f"[bold cyan][CMD][/bold cyan] : {result}")
 
 		if cmd_ssh_before:
 			result = self.ssh.execute(cmd_ssh_before)
-			print(f"[bold cyan][BEFORE SSH CMD OUT][/bold cyan] : {result}")
+			print(f"[bold cyan][SSH][/bold cyan] : {result}")
 
 		# deploy
 		if protocol == "sftp":
 			print("[bold cyan][SFTP][/bold cyan] Deploying[FTP]...")
 			self.sftp.upload(tmp_dir, remote_path)
-			print("[bold green][SFTP]Successfully deployed[/bold green]")
+			print("[bold cyan][SFTP][/bold cyan] [bold green]Successfully[/bold green] deployed")
 		
 		if protocol == "ftp":
 			print("[bold cyan][FTP][/bold cyan] Deploying...")
 			self.ftp.upload(tmp_dir, remote_path)
-			print("[bold cyan][FTP][/bold cyan] Successfully deployed")
+			print("[bold cyan][FTP][/bold cyan] [bold green]Successfully[/bold green] deployed")
 		
 		# execute the commands after the deployment
 		if cmd_after:
 			result = self.cmd.execute(cmd_after)
-			print(f"[bold cyan][AFTER CMD OUT][/bold cyan] : {result}")
+			print(f"[bold cyan][CMD][/bold cyan] : {result}")
 
 		if cmd_ssh_after:
 			result = self.cmd.execute(cmd_ssh_after)
-			print(f"[bold cyan][AFTER SSH CMD OUT][/bold cyan] : {result}")
+			print(f"[bold cyan][SSH][/bold cyan] : {result}")
 	
 		# delete the remote directory
 		self._delete_tmp_directory(tmp_dir)
