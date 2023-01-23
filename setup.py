@@ -7,8 +7,7 @@ setup(
     install_requires=[
         "argparse",
 		"rich",
-		"ftplib"
-		"paramiko"
-		"pysftp",
+		"paramiko",
+		"jsonschema"
     ],
 )
