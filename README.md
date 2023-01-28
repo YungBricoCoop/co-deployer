@@ -23,11 +23,11 @@ The file is structured in two parts: `hosts` and `deployments`.
 #### Hosts
 The hosts are the servers where you want to deploy your project. You can define as many hosts as you want. Each host has a name and the credentials to connect to the server, the credentials can be shared for ftp/sfp and ssh connections or you can define different credentials for each connection type.
 
-Only the `name` and `host` fields are required, the rest are optional.
+Only the `name` and `hostname` fields are required, the rest are optional.
 ```json
 "hosts" : [{
 	"name" : "my_host",
-	"host" : "my-host.com",
+	"hostname" : "my-host.com",
 	"username" : "user",
 	"password" : "password",
 	"ftp" : {
