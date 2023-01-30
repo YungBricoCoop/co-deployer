@@ -84,4 +84,10 @@ The `cmd` is an object that contains the commands that you want to run on the se
 		"ssh_after" : "",
 	}
 }]
+
 ```
+
+# To-Do
+- [ ] Separate hosts and deployment
+- [ ] Encrypt hosts passwords
+- [ ] Fix exclude files/folders not working
